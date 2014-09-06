@@ -25,3 +25,6 @@ services:
 	fooFactory3:
 		create: Foo
 		implement: IFooFactory
+
+	fooFactory4:
+		implement: IFooFactory
