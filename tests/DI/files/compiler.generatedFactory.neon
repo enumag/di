@@ -28,3 +28,5 @@ services:
 
 	fooFactory4:
 		implement: IFooFactory
+
+	fooFactory5: IFooFactory
