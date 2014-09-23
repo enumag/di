@@ -66,3 +66,57 @@ Assert::equal( array(
 	new Statement(array('@self', 'setup'), array('Iface')),
 	new Statement(array('@self', 'setup')),
 ), $builder->getDefinition('one')->getSetup() );
+
+
+class DecoratorProviderExtension extends Nette\DI\CompilerExtension implements Nette\DI\Extensions\IDecoratorProvider
+{
+	public function getDecorators()
+	{
+		return array(
+			'Nette\Object' => array(
+				'setup' => array(
+					new Statement(array('@self', 'setup'), array('Object')),
+				),
+				'inject' => TRUE,
+			),
+			'Iface' => array(
+				'setup' => array(
+					new Statement(array('@self', 'setup'), array('Iface')),
+					'setup',
+				),
+				'tags' => array(
+					'b',
+					'tag' => 1,
+				),
+			),
+		);
+	}
+}
+
+$compiler = new DI\Compiler;
+$compiler->addExtension('decorator', new Nette\DI\Extensions\DecoratorExtension);
+$compiler->addExtension('decoratorProvider', new DecoratorProviderExtension);
+$container = createContainer($compiler, '
+services:
+	one:
+		class: Service
+		tags: [a, tag: 2]
+		setup:
+			- setup(Service)
+');
+
+$builder = $compiler->getContainerBuilder();
+
+Assert::same(
+	array('a' => TRUE, 'tag' => 2, 'inject' => TRUE, 'b' => TRUE),
+	$builder->getDefinition('one')->tags
+);
+
+Assert::true( $builder->getDefinition('one')->getTag('inject') );
+
+Assert::equal( array(
+	new Statement(array('@self', 'setup'), array('Service')),
+	new Statement(array('@self', 'setup'), array('Object')),
+	new Statement(array('@self', 'setup'), array('Iface')),
+	new Statement(array('@self', 'setup')),
+), $builder->getDefinition('one')->getSetup() );

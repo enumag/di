@@ -27,7 +27,13 @@ class DecoratorExtension extends Nette\DI\CompilerExtension
 
 	public function beforeCompile()
 	{
-		foreach ($this->getConfig() as $class => $info) {
+		$config = $this->getConfig();
+		
+		foreach ($this->compiler->getExtensions('Nette\DI\Extensions\IDecoratorProvider') as $provider) {
+			$config = array_merge($config, $provider->getDecorators());
+		}
+	
+		foreach ($config as $class => $info) {
 			$this->validate($info, $this->defaults, $this->prefix($class));
 			$info += $this->defaults;
 			if ($info['inject'] !== NULL) {
